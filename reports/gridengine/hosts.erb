@@ -1,0 +1,71 @@
+<% 
+  def __parse_qstat_f
+    _data = Hash.new
+    `qstat -f`.each_line do |line|
+      next if line =~ /^queuename/
+      next if line =~ /^--/
+      line = line.split
+      queue, host = line[0].split('@')
+      queue_type  = line[1]
+      reserve, used, total = line[2].split('/')
+      host_load   = line[3]
+      state = ''
+      if line.length == 6
+        queue_state = line[5] 
+        state = queue_state
+      else
+        queue_state = ''
+      end
+      unless _data.has_key?(host)
+        _data[host] = {
+          'load' => host_load,
+          'state' => state,
+          'jobs' => 0,
+          'queue' => {}
+        }
+      end
+      _data[host]['jobs'] += used.to_i
+      _data[host]['queue'][queue] = {
+        'state' => queue_state,
+        'slots' => {
+          'reserved' => reserve,
+          'used' => used,
+          'available' => total,
+        },
+        'type' => queue_type
+      }
+    end
+    return _data
+  end
+  _content = __parse_qstat_f  %>
+<% if @config %>
+<%= '[]' %>
+<% else %>
+<%   if @type == 'text' %>
+<%=    'Not supported by this plug-in.' %>
+<%   elsif  @type == 'json' %>
+<%     require 'json' %>
+<%=    JSON.pretty_generate(_content) %>
+<%   else %>
+<table>
+  <thead>
+    <tr>
+      <th>Node</th>
+      <th>State</th>
+      <th>Jobs</th>
+    </tr>
+  </thead>
+  <tbody>
+<%  _content.keys.sort.each do |_node| %>
+<%  _state = '&nbsp;' %>
+<%  _state = _content[_node]['state'] unless _content[_node]['state'].empty? %>
+    <tr>
+      <td><%= _node %></td>
+      <td><%= _state %></td>
+      <td><%= _content[_node]['jobs'] %></td>
+    </tr>
+<%  end %>
+  <tbody>
+</table>
+<%   end %>
+<% end %>

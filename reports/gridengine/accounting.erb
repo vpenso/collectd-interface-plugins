@@ -1,0 +1,73 @@
+<% if @config %>
+<%= '[]' %>
+<% else %>
+<%  __data = Array.new %>
+<%  __time = String.new %>
+<%  __file = ::File.join(::File.dirname(__FILE__),'accounting_data.json') %>
+<%  if ::File.exists?(__file) %>
+<%    __time = ::File.ctime(__file) %>
+<%    __data = File.read(__file) %>
+<%  end %>
+<%  if @type == 'text' %>
+<%=   'Not supported by this plugin' %>
+<%  elsif @type == 'json' %>
+<%=   __data %>
+<%  else %>
+<h3>GridEngine Accounting Summary of Last Week</h3>
+<table>
+<%    if __data.empty? %>
+<%=   'Data source missing!' %>
+<%    else %>
+<%      require 'json' %>
+<%      __data = JSON.parse(__data) %>
+<%=     'Last updated: ' + __time.to_s %>
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Jobs</th>
+      <th>CPU&nbsp;Time</th>
+      <th>Run&nbsp;Time</th>
+      <th>Memory&nbsp;Used</th>
+      <th>I/O</th>
+      <th colspan="4">Jobs Max Resident Memory</th>
+      <th colspan="4">Jobs Run Time</th>
+      <th>Exits</th>
+    </tr>
+    <tr>
+      <th>&nbsp;</th>
+      <th>&nbsp;</th>
+      <th>&nbsp;</th>
+      <th>&nbsp;</th>
+      <th>Over Time</th>
+      <th>&nbsp;</th>
+      <th>&lt;1GB</th>
+      <th>&lt;2GB</th>
+      <th>&lt;4GB</th>
+      <th>&gt;4GB</th>
+      <th>&lt;1h</th>
+      <th>&lt;4h</th>
+      <th>&lt;12h</th>
+      <th>&gt;12h</th>
+      <th>not 0</th>
+    </tr>
+  </thead>
+  <tbody>
+<%       __data[1..-1].each do |column| %>
+    <tr>
+<%       column[0..5].each do |row| %>
+      <td><%= row %></td> 
+<%       end %>
+<%       column[6].split('/').each do |v| %>
+      <td><%= v %></td>
+<%    end %>
+<%       column[7].split('/').each do |v| %>
+      <td><%= v %></td>
+<%       end %>
+      <td><%= column[-1] %></td>  
+    </tr>
+<%     end %>
+  </tbody>
+<%   end %>
+</table>
+<%  end %>
+<% end %>

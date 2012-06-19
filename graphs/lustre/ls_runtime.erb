@@ -1,0 +1,18 @@
+<% if @config %>
+<%= "[ ]" %>
+<% else %>
+--title="Lustre Ls Runtime" \
+--vertical-label="Milliseconds" \
+--logarithmic \
+--alt-autoscale-max \
+DEF:run_av=<%= @rrd_path %>/lustre/ls_runtime.rrd:runtime:AVERAGE \
+DEF:run_min=<%= @rrd_path %>/lustre/ls_runtime.rrd:runtime:MIN \
+DEF:run_max=<%= @rrd_path %>/lustre/ls_runtime.rrd:runtime:MAX \
+AREA:run_max#00F00022  \
+AREA:run_min#ffffff \
+LINE1:run_av<%= @color[:blue_dark] %>:"Runtime " \
+GPRINT:run_min:MIN:"Min. %6.2lf" \
+GPRINT:run_av:AVERAGE:"Avg. %6.2lf" \
+GPRINT:run_max:MAX:"Max. %6.2lf" \
+GPRINT:run_av:LAST:"Last %6.2lf" 
+<% end %>

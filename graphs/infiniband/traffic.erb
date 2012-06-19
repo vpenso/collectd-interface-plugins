@@ -1,0 +1,33 @@
+<% if @config %>
+<%   __supports = Array.new %>
+<%   __path = File.join(@rrd_path,'infiniband') %>
+<%   Dir["#{__path}/ib_octets-*.rrd"].each do |file| %>
+<%     __supports << file.gsub(/\.rrd/,'').gsub(%r<#{__path}/ib_octets->,'') %>
+<%   end %>
+<%   require 'json' %>
+<%=  JSON.generate(__supports.sort) %>
+<% else %>
+--title='Network Traffic Infiniband "<%= @param %>"' \
+--vertical-label="Bytes per Second" \
+--alt-autoscale-max \
+DEF:rx_av=<%= @rrd_path %>/infiniband/ib_octets-<%= @param %>.rrd:rx:AVERAGE \
+DEF:rx_min=<%= @rrd_path %>/infiniband/ib_octets-<%= @param %>.rrd:rx:MIN \
+DEF:rx_max=<%= @rrd_path %>/infiniband/ib_octets-<%= @param %>.rrd:rx:MAX \
+DEF:tx_av=<%= @rrd_path %>/infiniband/ib_octets-<%= @param %>.rrd:tx:AVERAGE \
+DEF:tx_min=<%= @rrd_path %>/infiniband/ib_octets-<%= @param %>.rrd:tx:MIN \
+DEF:tx_max=<%= @rrd_path %>/infiniband/ib_octets-<%= @param %>.rrd:tx:MAX \
+AREA:rx_max#00F00022 \
+AREA:rx_min#ffffff \
+AREA:tx_max#0000ff22 \
+AREA:tx_min#ffffff \
+LINE1:rx_av#00f000aa:"Receive " \
+GPRINT:rx_min:MIN:"Min. %3.0lf%s" \
+GPRINT:rx_av:AVERAGE:"Avg. %3.0lf%s" \
+GPRINT:rx_max:MAX:"Max. %3.0lf%s" \
+GPRINT:rx_av:LAST:"Last %3.0lf%s" \
+LINE1:tx_av#0000ffaa:"Transmit" \
+GPRINT:tx_min:MIN:"Min. %3.0lf%s" \
+GPRINT:tx_av:AVERAGE:"Avg. %3.0lf%s" \
+GPRINT:tx_max:MAX:"Max. %3.0lf%s" \
+GPRINT:tx_av:LAST:"Last %3.0lf%s"
+<% end %>

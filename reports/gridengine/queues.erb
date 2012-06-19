@@ -1,0 +1,36 @@
+<% if @config %>
+<%= "[]" %>
+<% else %>
+<%   _content = `qstat -g c` %>
+<%   _keys = ['queue','load','used','reserved','available','total','alert','problem'] %>
+<%   if @type == 'text' %>
+<%=    _content %>
+<%   elsif @type ==  'json' %>
+<%     _content = _content.split("\n")[2..-1] %>
+<%     _data = Array.new %>
+<%     _content.each do |queue| %>
+<%       _data << Hash[*_keys.zip(queue.split).flatten] %>
+<%     end %>
+<%     require 'json' %>
+<%=    JSON.pretty_generate _data %>
+<%     else %>
+<table>
+  <thead>
+    <tr>
+<%    _keys.each do |name| %>
+      <th><%= name.capitalize %></th>
+<%    end %>
+    </tr>
+  </thead>
+  <tbody>
+<%  _content.split("\n")[2..-1].each do |queue| %>
+    <tr>
+<%    queue.split.each do |column| %>
+      <td><%= column %></td>
+<%    end %>
+    </tr>
+<%  end %>
+  </tbody>
+</table>
+<%   end %>
+<% end %>

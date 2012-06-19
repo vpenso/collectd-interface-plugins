@@ -1,0 +1,54 @@
+<% def fill_row_gaps(row) %>
+<%   _front = row[0..6] %>
+<%   _tail = row[7..-1] %>
+<%   if _tail.length == 1 %>
+<%     _tail = [nil,_tail,nil] %>
+<%   elsif _tail.length == 2 %>
+<%     if _tail[0].include?('@') %>
+<%       _tail.push(nil) %>
+<%     else %>
+<%       _tail.unshift(nil) %>
+<%     end %>
+<%   end %>
+<%   return _front + _tail %>
+<% end %>
+<% if @config %>
+<%= "[]" %>
+<% else %>
+<%   _content = `qstat -u '*'` %>
+<%   _keys = ['id','priority','name','user','state','date','time','queue','slots','task'] %>
+<%   if @type == 'text' %>
+<%=    _content %>
+<%   elsif @type ==  'json' %>
+<%     _content = _content.split("\n")[2..-1] %>
+<%     _data = Array.new %>
+<%     _content.each do |queue| %>
+<%       _queue = fill_row_gaps(queue.split) %>
+<%       _data << Hash[*_keys.zip(_queue).flatten] %>
+<%     end %>
+<%     require 'json' %>
+<%=    JSON.pretty_generate _data %>
+<%   else %>
+<div style="font-size:160%"><strong>GridEngine Jobs</strong></div>
+<table>
+  <thead>
+    <tr>
+<%    _keys.each do |name| %>
+      <th><%= name.capitalize %></th>
+<%    end %>
+    </tr>
+  </thead>
+  <tbody>
+<%  _content.split("\n")[2..-1].each do |row| %>
+    <tr>
+<%    row = fill_row_gaps(row.split) %>
+<%    row.each do |column| %>
+<%      column = "&nbsp;" if column.nil? %>
+        <td><%= column %></td>
+<%    end %>
+    </tr>
+<%  end %>
+  </tbody>
+</table>
+<%   end %>
+<% end %>

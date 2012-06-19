@@ -1,0 +1,48 @@
+<% if @config %>
+<%= '[]' %>
+<% else %>
+<%   _log_file = '/var/log/chef/cliednt.log' %>
+<%   _output = String.new %>
+<%   if ::File.exists?(_log_file) %>
+<%     _output = `cat #{_log_file} | grep 'Chef Run complete' | tail -5`%>
+<%   end %>
+<%   _data = Array.new %>
+<%   _output.each do |line| %>
+<%     line = line.split('INFO:') %>
+<%     time = line[0].delete('[').delete(']').strip %>
+<%     since_epoch = Time.parse(time).to_i %>
+<%     run_time = line[1].split[4].to_f %>
+<%     _data << [ time, run_time, since_epoch ] %>
+<%   end %>
+<%   _keys = [ 'time', 'runtime', 'epoch+' ]%>
+<%   if @type == 'text' %>
+<%     _content = Array.new %>
+<%     _data.each { |d| _content << "#{d[2]} #{d[1]}\n" }%>
+<%=    _content %>
+<%   elsif @type == 'json' %>
+<%     require 'json' %>
+<%     _content = Array.new %>
+<%     _data.each { |d|  _content <<  Hash[*_keys.zip(d).flatten] }%>
+<%=    JSON.pretty_generate _content %>
+<%   else %>
+<h2>Chef Runs Completed</h2>
+<table>
+  <thead>
+    <tr>
+<%    _keys.each do |name| %>
+      <th><%= name.capitalize %></th>
+<%    end %>
+    </tr>
+  </thead>
+  <tbody>
+<%  if _data.empty? %>
+       <tr><td>&empty;</td><td>&empty;</td><td>&empty;</td></tr>
+<%  else %>
+<%    _data.each do |line| %>
+      <tr><td><%= line.join('</td><td>')%></td></tr>
+<%    end %>
+<%  end %>
+  </tbody>
+</table>
+<%   end %>
+<% end %>

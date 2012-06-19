@@ -1,0 +1,144 @@
+<% if @config %>
+<%=  "[]" %>
+<% else 
+     __data = Array.new
+     # query GridEngine an fill a gaps in the output, btw. GE CLI sucks!
+     __output = `qstat -u '*'`
+     unless __output.empty?
+       __output.split("\n")[2..-1].each do |row|
+         row = row.split   
+         _front = row[0..6]
+         _tail = row[7..-1]
+         if _tail.length == 1
+           _tail = [nil,_tail,nil]
+         elsif _tail.length == 2
+           if _tail[0].include?('@')
+             _tail.push(nil)
+           else
+             _tail.unshift(nil)
+           end
+         end
+         __data << _front + _tail
+       end
+     end
+     __users = Hash.new
+     __data.each do |job|
+       _user = job[3]
+       _state = job[4]
+       _task = job[9]
+       # add the user if it isn't existing
+       unless __users.has_key?(_user)
+         __users[_user] = {
+           'states' => {
+             'running' => 0,
+             'queued' => 0,
+             'error' => 0,
+             'suspend' => 0
+           },
+           'jobs' => 0,
+           'tasks' => 0,
+           'slots' => 0
+         } 
+       end
+       # only for jobs in state running
+       if _state.include?('r')
+         __users[_user]['states']['running'] += 1
+         # accumulate jobs slots consumed by running jobs
+         __users[_user]['slots'] += job[8].to_i
+       else
+         __users[_user]['states']['queued'] += 1 if _state.include?('q')
+         __users[_user]['states']['error'] += 1 if _state.include?('e') or _state.include?('E')
+         __users[_user]['states']['suspend'] += 1 if _state.include?('s') or _state.include?('S')
+       end
+       __users[_user]['tasks'] += 1 unless _task.nil?
+       __users[_user]['jobs'] += 1
+     end
+
+     _sum = {
+        'jobs' => 0,
+        'tasks' => 0,
+        'slots' => 0,
+        'states' => {
+          'running' => 0,
+          'queued' => 0,
+          'error' => 0,
+          'suspend' => 0
+        }
+     }
+     __users.each_value do |_data|
+       _sum['jobs'] += _data['jobs']
+       _sum['tasks'] += _data['tasks']
+       _sum['slots'] += _data['slots']
+       _sum['states']['running'] += _data['states']['running']
+       _sum['states']['queued'] += _data['states']['queued']
+       _sum['states']['suspend'] += _data['states']['suspend']
+       _sum['states']['error'] += _data['states']['error']
+     end
+
+     if @type == 'text' %>
+<%=     "Not supported by this plugin" %>
+<%   elsif @type == 'json' %>
+<%     require 'json' %>
+<%=    JSON.pretty_generate(__users) %>
+<%   else %>
+<table>
+  <thead>
+    <tr>
+      <th>User</th>
+      <th colspan="2">&nbsp;</th>
+      <th colspan="4">Job&nbsp;States</th>
+      <th>Slots</th>
+    </tr>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Jobs</th>
+      <th>Tasks</th>
+      <th>Running</th>
+      <th>Queued</th>
+      <th>Suspend</th>
+      <th>Error</th>
+      <th>Used</th>
+    </tr>
+  </thead>
+  <tbody>
+<%  unless __users.empty? %>
+<%    __users.each_pair do |_name,_data| %>
+    <tr>
+      <td><%= _name %></td>
+      <td><%= _data['jobs'] %>&nbsp;</td>
+      <td><span style="color:gray"><%= _data['tasks'] %></span></td>
+      <td><%= _data['states']['running'] %></td>
+      <td><%= _data['states']['queued'] %></td>
+      <td><%= _data['states']['suspend'] %></td>
+      <td><%= _data['states']['error'] %></td>
+      <td><%= _data['slots']%></td>
+    </tr>
+<%    end %>
+<%  else %>
+    <tr>
+      <td>none</td>
+      <td>&empty;</td>
+      <td>&empty;</td>
+      <td>&empty;</td>
+      <td>&empty;</td>
+      <td>&empty;</td>
+      <td>&empty;</td>
+      <td>&empty;</td>
+    </tr>
+<%  end %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td style="text-align:right">&sum;</td>
+      <td><%= _sum['jobs'] %></td>
+      <td><%= _sum['tasks'] %></td>
+      <td><%= _sum['states']['running'] %></td>
+      <td><%= _sum['states']['queued'] %></td>
+      <td><%= _sum['states']['suspend'] %></td>
+      <td><%= _sum['states']['error'] %></td>
+      <td><%= _sum['slots'] %></td>
+    </tr>
+  </tfoot>
+</table>
+<%   end %>
+<% end %>
