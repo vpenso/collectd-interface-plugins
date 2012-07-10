@@ -1,0 +1,76 @@
+<% if @config %>
+<%   __supports = Array.new %>
+<%   __path = File.join(@rrd_path,'infiniband') %>
+<%   Dir["#{__path}/ib_octets-*.rrd"].each do |file| %>
+<%     __supports << file.gsub(/\.rrd/,'').gsub(%r<#{__path}/ib_octets->,'') %>
+<%   end %>
+<%   require 'json' %>
+<%=  JSON.generate(__supports.sort) %>
+<% else %>
+--title='Network Errors Infiniband "<%= @param %>"' \
+--vertical-label="Number of" \
+--alt-autoscale-max \
+DEF:symerr_av=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:symerr:AVERAGE \
+DEF:symerr_min=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:symerr:MIN \
+DEF:symerr_max=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:symerr:MAX \
+DEF:linkrec_av=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkrec:AVERAGE \
+DEF:linkrec_min=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkrec:MIN \
+DEF:linkrec_max=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkrec:MAX \
+DEF:linkdown_av=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkdown:AVERAGE \
+DEF:linkdown_min=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkdown:MIN \
+DEF:linkdown_max=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkdown:MAX \
+DEF:linkerr_av=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkerr:AVERAGE \
+DEF:linkerr_min=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkerr:MIN \
+DEF:linkerr_max=<%= @rrd_path %>/infiniband/ib_linkerror-<%= @param %>.rrd:linkerr:MAX \
+DEF:rxerr_max=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxerr:MAX \
+DEF:rxerr_av=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxerr:AVERAGE \
+DEF:rxerr_min=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxerr:MIN \
+DEF:rxphyserr_max=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxerr:MAX \
+DEF:rxphyserr_av=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxphyserr:AVERAGE \
+DEF:rxphyserr_min=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxphyserr:MIN \
+DEF:rxbuferr_av=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxbuferr:AVERAGE \
+DEF:rxbuferr_min=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxbuferr:MIN \
+DEF:rxbuferr_max=<%= @rrd_path %>/infiniband/ib_rcverror-<%= @param %>.rrd:rxbuferr:MAX \
+DEF:vdrop_av=<%= @rrd_path %>/infiniband/ib_pkgerror-<%= @param %>.rrd:vdrop:AVERAGE \
+DEF:vdrop_min=<%= @rrd_path %>/infiniband/ib_pkgerror-<%= @param %>.rrd:vdrop:MIN \
+DEF:vdrop_max=<%= @rrd_path %>/infiniband/ib_pkgerror-<%= @param %>.rrd:vdrop:MAX \
+DEF:xmtdisc_av=<%= @rrd_path %>/infiniband/ib_pkgerror-<%= @param %>.rrd:xmtdisc:AVERAGE \
+DEF:xmtdisc_min=<%= @rrd_path %>/infiniband/ib_pkgerror-<%= @param %>.rrd:xmtdisc:MIN \
+DEF:xmtdisc_max=<%= @rrd_path %>/infiniband/ib_pkgerror-<%= @param %>.rrd:xmtdisc:MAX \
+LINE1:symerr_av#FF0000AA:"SymbolErrors          " \
+GPRINT:symerr_min:MIN:"Min. %3.0lf%s" \
+GPRINT:symerr_max:MAX:"Max. %3.0lf%s" \
+GPRINT:symerr_av:LAST:"Last %3.0lf%s" \
+LINE1:linkrec_av#FF4500AA:"LinkRecovers          " \
+GPRINT:linkrec_min:MIN:"Min. %3.0lf%s" \
+GPRINT:linkrec_max:MAX:"Max. %3.0lf%s" \
+GPRINT:linkrec_av:LAST:"Last %3.0lf%s" \
+LINE1:linkdown_av#FFFF00AA:"LinkDowned            " \
+GPRINT:linkdown_min:MIN:"Min. %3.0lf%s" \
+GPRINT:linkdown_max:MAX:"Max. %3.0lf%s" \
+GPRINT:linkdown_av:LAST:"Last %3.0lf%s" \
+LINE1:linkerr_av#0000FFAA:"LinkIntegrityErrors   " \
+GPRINT:linkerr_min:MIN:"Min. %3.0lf%s" \
+GPRINT:linkerr_max:MAX:"Max. %3.0lf%s" \
+GPRINT:linkerr_av:LAST:"Last %3.0lf%s" \
+LINE1:rxerr_av#00FFFFAA:"RcvErrors             " \
+GPRINT:rxerr_min:MIN:"Min. %3.0lf%s" \
+GPRINT:rxerr_max:MAX:"Max. %3.0lf%s" \
+GPRINT:rxerr_av:LAST:"Last %3.0lf%s" \
+LINE1:rxphyserr_av#4B0082AA:"RcvRemotePhysErrors   " \
+GPRINT:rxphyserr_min:MIN:"Min. %3.0lf%s" \
+GPRINT:rxphyserr_max:MAX:"Max. %3.0lf%s" \
+GPRINT:rxphyserr_av:LAST:"Last %3.0lf%s" \
+LINE1:rxbuferr_av#DDA0DD:"ExcBufOverrunErrors   " \
+GPRINT:rxbuferr_min:MIN:"Min. %3.0lf%s" \
+GPRINT:rxbuferr_max:MAX:"Max. %3.0lf%s" \
+GPRINT:rxbuferr_av:LAST:"Last %3.0lf%s" \
+LINE1:vdrop_av#006400AA:"VL15Dropped           " \
+GPRINT:vdrop_min:MIN:"Min. %3.0lf%s" \
+GPRINT:vdrop_max:MAX:"Max. %3.0lf%s" \
+GPRINT:vdrop_av:LAST:"Last %3.0lf%s" \
+LINE1:xmtdisc_av#00F000AA:"XmtDiscards           " \
+GPRINT:xmtdisc_min:MIN:"Min. %3.0lf%s" \
+GPRINT:xmtdisc_max:MAX:"Max. %3.0lf%s" \
+GPRINT:xmtdisc_av:LAST:"Last %3.0lf%s" \
+<% end %>
