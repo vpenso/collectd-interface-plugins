@@ -1,0 +1,20 @@
+<% if @config %>
+<%= "[ ]" %>
+<% else %>
+--title="System Temperature" \
+--vertical-label="°C" \
+--alt-autoscale-max \
+--lower-limit=0 \
+DEF:t_av=<%= @rrd_path %>/ipmi/ipmi_temperature.rrd:temp:AVERAGE \
+DEF:t_min=<%= @rrd_path %>/ipmi/ipmi_temperature.rrd:temp:MIN \
+DEF:t_max=<%= @rrd_path %>/ipmi/ipmi_temperature.rrd:temp:MAX \
+DEF:m_av=<%= @rrd_path %>/ipmi/ipmi_temperature.rrd:max:AVERAGE \
+AREA:t_max#0000FF22 \
+AREA:t_min#ffffff \
+LINE1:t_av#0000FFAA:"Temp." \
+GPRINT:t_min:MIN:"Min. %6.2lf" \
+GPRINT:t_av:AVERAGE:"Avg. %6.2lf" \
+GPRINT:t_max:MAX:"Max. %6.2lf" \
+GPRINT:t_av:LAST:"Last %6.2lf" \
+LINE2:m_av#FF0000AA:""
+<% end %>
